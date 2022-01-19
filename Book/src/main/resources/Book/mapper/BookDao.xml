@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "=//mybatis.org//DTD Mapper 3.0 EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.springboot.dao.IBookDao">
+	
+	<!-- 로그인 아이디/패스워드 확인 -->
+	 <select id = "loginCheck" resultType="com.project.springboot.dto.UserDto">
+		select * from userlist where id=#{param1} and password=#{param2}
+	</select> 
+	
+	<!-- 아이디 찾기 -->
+	<select id = "findUserId" resultType = "string">
+		select id from userlist where name = #{name} and birthday=#{birthday} and email=#{email} and phone=#{phone}
+	</select>
+	
+	<!-- 비밀번호 찾기 -->
+	<select id = "findUserPassword" resultType = "string">
+		select password from userlist where id = #{id} and name = #{name} and birthday=#{birthday} and email=#{email} and phone=#{phone}
+	</select>
+	
+	<!-- id 중복확인  -->
+	<select id = "idDoubleCheckDao" resultType="_int">
+		select count(*) from userlist where id = #{param1}
+	</select>
+	
+	<!-- book데이터의 총수를 가져옴 -->
+	<select id="totalData_" resultType="_int">
+		select count(*) from booktable;
+	</select>
+	
+	<!-- 도서검색  -->
+	<select id = "findBook_" resultType="com.project.springboot.dto.BookDto" parameterType="com.project.springboot.dto.findBookDto">
+		<!-- select * from booktable where if(#{findCondition}='title', title like #{findWord}, writer like #{findWord}) and reg_date
+ 		BETWEEN #{minDate} AND #{maxDate} and if(#{categori} ='적용안함', categori like '%', categori =#{categori}) 
+ 		and if(#{type} = '전체', type like '%', type = #{type}) order by book_idx desc; -->
+ 		select * from booktable where ${findCondition} like '%${findWord}%' and reg_date BETWEEN #{minDate} AND #{maxDate} and if
+ 		(#{categori} ='적용안함', categori like '%', categori =#{categori})
+ 		 and if(#{type} = '전체', type like '%', type = #{type}) order by book_idx desc limit ${changePage}, 10
+	</select>
+	
+	<!-- 도서목록을 idx 내림차순으로 모두 받아오는 쿼리 -->
+	<select id = "findBook_book_idx_desc_" resultType="com.project.springboot.dto.BookDto">
+		select * from booktable order by book_idx desc limit ${param1}, 10
+	</select>
+	
+	<!-- 책 정보 수정을 위해 책 정보를 받는 쿼리 -->
+	<select id = "getBookDetail_" resultType="com.project.springboot.dto.BookDto">
+		select * from booktable where book_idx = #{param1}
+	</select>
+	
+	<!-- 추천도서 목록을 받아오는 쿼리 -->
+	<select id="getRecommendBookList_" resultType="com.project.springboot.dto.BookDto">
+		select * from booktable where recommend = 1
+	</select>
+	
+	<!-- 관리자페이지 도서 검색 -->
+	<select id="adminFindBook_" resultType="com.project.springboot.dto.BookDto" parameterType="com.project.springboot.dto.findBookDto">
+		select * from booktable where ${findCondition} like '%${findWord}%'
+	</select>
+	
+	<!-- 신작도서 목록 가져오는 쿼리  최근한달 신규도서 목록 가져온다.-->
+	<!-- <select id="getNewBookList_" resultType="com.project.springboot.dto.BookDto">
+		select * from booktable where reg_date BETWEEN DATE_ADD(NOW(),INTERVAL -1 month ) AND NOW() order by reg_date desc
+	</select> -->
+	
+	<!-- 대출베스트10 목록을 받아오는 쿼리 -->
+	<select id="getBestBookList_" resultType="com.project.springboot.dto.BookDto">
+		select * from booktable order by count desc limit 10
+	</select>
+	
+	<!-- 검색한 데이터의 수를 가져옴 -->
+	<select id="findTotalData" resultType="_int">
+		select count(*) from booktable where ${findCondition} like '%${findWord}%' and reg_date BETWEEN #{minDate} AND #{maxDate} and if
+ 		(#{categori} ='적용안함', categori like '%', categori =#{categori})
+ 		 and if(#{type} = '전체', type like '%', type = #{type}) order by book_idx desc
+	</select>
+	
+	<!-- 게시판 모든 리스트를 가져오는 쿼리  -->
+	<select id="getNoticeBoardList_" resultType="com.project.springboot.dto.NoticeBoardDto">
+		select * from notice_board order by notice_board_idx desc limit ${param1}, 10
+	</select>
+	
+	<!-- 게시판 게시글 총수를 가져옴  -->
+	<select id="getNoticeTotal_" resultType="_int">
+		select count(*) from notice_board;
+	</select>
+	
+	<!-- 게시글 싱세 정보를 가져옴 -->
+	<select id="getNoticeDetail_" resultType="com.project.springboot.dto.NoticeBoardDto">
+		
+		select * from notice_board where notice_board_idx = #{param1};
+		
+	</select>
+	
+	<!-- 게시글의 댓글 정보를 가져오는 쿼리  -->
+	<select id="getNoticeComment_" resultType="com.project.springboot.dto.NoticeBoardCommentDto">
+		<!-- select * from notice_board_comment where notice_board_idx = #{param1} -->
+		SELECT * FROM notice_board_comment where notice_board_idx = #{param1} order by commentgroup desc, depth, reg_date asc;
+	</select>
+	
+	<!-- 게시글 댓글 작성시 댓글그룹의 가장 최신번호 받아오는 쿼리 -->
+	<select id="getMaxCommentGroup_" resultType="_int">
+		select max(commentgroup) from notice_board_comment;
+	</select>
+	
+	<!-- 게시글 검색 -->
+	<select id="getNoticeSearch_" resultType="com.project.springboot.dto.NoticeBoardDto">
+		select * from notice_board where ${param1} like '%${param2}%' order by notice_board_idx desc limit ${param3}, 10
+	</select>
+	
+	<!-- 검색한 게시글의 총수 -->
+	<select id="getNoticeSearchTotal_" resultType="_int">
+		select count(*) from notice_board where ${param1} like '%${param2}%'
+	</select>
+	
+	<!-- user 현재 대출 목록을 가져옴 -->
+	<select id="getUserRentalList_" resultType="com.project.springboot.dto.RentalListDto">
+		<!-- select * from rental_list where user = #{param1} -->
+		select rental_list.*, booktable.title from rental_list, booktable where user = #{param1} and rental_state = '대여중' and rental_list.book_idx = booktable.book_idx;
+	</select>
+	
+	<!-- 도서의 대출 상태 가져오는 쿼리 -->
+	<select id="getBookInven_" resultType="string">
+		select inven from booktable where book_idx = #{param1}
+	</select>
+	
+	<!-- 존재하는 user인지 확인 -->
+	<select id="getUserExist_" resultType="_int">
+		select count(*) from userlist where id = #{param1}
+	</select>
+	
+	<!-- 반납할 도서 번호 가져오기 -->
+	<select id="getMaxRental_list_idx_" resultType="_int">
+		select max(rental_list_idx) from rental_list where book_idx = #{param1}
+	</select>
+	
+	<!-- 대출 목록의 수를 가져오는 쿼리 -->
+	<select id="getTotalRental_" resultType="_int">
+		select count(*) from rental_list
+	</select>
+	
+	<!-- 대출 목록 데드라인 순으로 가져옴 -->
+	<select id="getRentalList_" resultType="com.project.springboot.dto.RentalListDto">
+		select * from rental_list where rental_state='대여중' order by deadline desc limit ${param1}, 10;
+	</select>
+
+	<!--회원가입  -->
+	<insert id = "registerMember" parameterType="com.project.springboot.dto.UserDto">
+		insert into userlist values(null, #{id}, #{password}, #{name}, #{birthday},
+									#{email}, #{phone}, #{addressCode}, #{address}, #{detailAddress})
+	</insert>
+	
+	<!-- 도서 등록  -->
+	<insert id="bookInsert_" parameterType="com.project.springboot.dto.BookDto">
+		insert into booktable values(null, #{title}, #{writer}, #{reg_date}, #{categori}, #{type}, '대여가능', #{publisher}, 0, 0)
+		
+	</insert>
+	
+	<!-- 게시글 댓글 추가 -->
+	<insert id="addNoticeComment_" parameterType="com.project.springboot.dto.NoticeBoardCommentDto">
+		insert into notice_board_comment values(null, #{notice_board_idx}, 0, #{writer}, #{content}, now(), #{commentGroup} )
+	</insert>
+	
+	<!-- 대댓글 추가 -->
+	<insert id="addNoticeRecomment_" parameterType="com.project.springboot.dto.NoticeBoardCommentDto">
+		insert into notice_board_comment values(null, #{notice_board_idx}, 1, #{writer}, #{content}, now(), #{commentGroup})
+	</insert>
+	
+	<!-- 게시글 쓰기  -->
+	<insert id="writeNoticeBoard_" parameterType="com.project.springboot.dto.NoticeBoardDto">
+		insert into notice_board values(null, #{title}, #{content}, #{writer}, now(), now(), 0)
+	</insert>
+	
+	<!-- 책 대출 실행 -->
+	<insert id="addBookRental_" parameterType="com.project.springboot.dto.RentalListDto">
+		insert into rental_list values ( null, #{book_idx}, #{user}, #{period},  curdate(), curdate() + ${period}, null, '대여중');
+	</insert>
+	
+	<!-- 추천도서 등록 쿼리 -->
+	<update id="addBookRecommend_">
+		update booktable set recommend = 1 where book_idx = #{param1}
+	</update>
+	
+	<!-- 추천도서 헤제 쿼리 -->
+	<update id="cancleRecommend_">
+		update booktable set recommend = 0 where book_idx = #{param1}
+	</update>
+	
+	<!-- 도서 수정 쿼리 -->
+	<update id="bookUpdate_" parameterType="com.project.springboot.dto.BookDto">
+		update booktable set title = #{title}, writer = #{writer}, reg_date = #{reg_date},
+		categori = #{categori}, type = #{type}, inven = #{inven}, publisher = #{publisher}, 
+		count = #{count} where book_idx = #{book_idx};
+	</update>
+	
+	<!-- 게시판 게시글 조회수 +1 -->
+	<update id="noticeCountUp_">
+		update notice_board set count = count+1 where notice_board_idx = #{param1};
+	</update>
+	
+	<!-- 게시글 수정 -->
+	<update id="modifyNoticeBoard_" parameterType="com.project.springboot.dto.NoticeBoardDto">
+		update notice_board set title = #{title}, content = #{content}, writer = #{writer}, update_date = now() where notice_board_idx = #{notice_board_idx}
+	</update>
+	
+	<!-- 도서반납 -->
+	<update id="bookReturn_">
+		update rental_list set rental_state = '반납완료', return_date = #{param2} where rental_list_idx = #{param1}
+	</update>
+	
+	<!-- 대출상태  대여중으로 변경 -->
+	<update id="changeInven_">
+		update booktable set inven = '대여중' where book_idx = #{param1}
+	</update>
+	
+	<!-- 대출상태 대여가능으로 변경 -->
+	<update id="changeInvenReturn_">
+		update booktable set inven = '대여가능' where book_idx = #{param1}
+	</update>
+	
+	<!-- 도서 목록 삭제 -->
+	<delete id="bookDelete_">
+		delete from booktable where book_idx = #{param1}
+	</delete>
+	
+	<!-- 게시글 삭제 -->
+	<delete id="deleteNoticeBoard_">
+		delete from notice_board where notice_board_idx = #{param1}
+	</delete>
+	
+</mapper>
